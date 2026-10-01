@@ -1,0 +1,19 @@
+{
+  "name": "warehouse-status",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git@me.github.com:dariavenskaya/warehouse-status.git"
+  },
+  "license": "ISC",
+  "author": "dariavenskaya",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "test": ""
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
