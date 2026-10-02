@@ -66,6 +66,7 @@ function assertSoldReturn(soldAt: Date | undefined, at: Date): void {
  * Changes laptop warehouse status if the transition is allowed.
  * Returns a new laptop object (does not mutate the input).
  * Every successful transition is appended to history.
+ * Sold laptop keeps soldAt date until it is re-sold.
  * A sold laptop can return to stock only within 14 days of soldAt.
  *
  * @param laptop - current laptop state
