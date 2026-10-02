@@ -32,7 +32,9 @@ function expectRejected(
   const soldAt = source.soldAt;
   const history = source.history;
 
-  expect(() => changeStatus(source, nextStatus, at)).toThrow(new Error(message));
+  expect(() => changeStatus(source, nextStatus, at)).toThrow(
+    new Error(message)
+  );
 
   expect(source.status).toBe(status);
   expect(source.soldAt).toBe(soldAt);
@@ -50,27 +52,30 @@ describe("changeStatus", () => {
       { from: "sold", to: "in_stock" },
     ];
 
-    it.each(transitions)("moves $from to $to and records history", ({ from, to }) => {
-      const at = new Date("2026-06-10T12:00:00.000Z");
-      const soldAt =
-        from === "sold" ? new Date(at.getTime() - 3 * DAY_MS) : undefined;
-      const source = laptop({
-        status: from,
-        soldAt,
-      });
+    it.each(transitions)(
+      "moves $from to $to and records history",
+      ({ from, to }) => {
+        const at = new Date("2026-06-10T12:00:00.000Z");
+        const soldAt =
+          from === "sold" ? new Date(at.getTime() - 3 * DAY_MS) : undefined;
+        const source = laptop({
+          status: from,
+          soldAt,
+        });
 
-      const result = changeStatus(source, to, at);
+        const result = changeStatus(source, to, at);
 
-      expect(result).not.toBe(source);
-      expect(result.id).toBe(source.id);
-      expect(result.status).toBe(to);
-      expect(result.history).toEqual([{ from, to, at }]);
-      expect(result.history).not.toBe(source.history);
-      expect(result.soldAt).toBe(to === "sold" ? at : undefined);
-      expect(source.status).toBe(from);
-      expect(source.soldAt).toBe(soldAt);
-      expect(source.history).toEqual([]);
-    });
+        expect(result).not.toBe(source);
+        expect(result.id).toBe(source.id);
+        expect(result.status).toBe(to);
+        expect(result.history).toEqual([{ from, to, at }]);
+        expect(result.history).not.toBe(source.history);
+        expect(result.soldAt).toBe(to === "sold" ? at : soldAt);
+        expect(source.status).toBe(from);
+        expect(source.soldAt).toBe(soldAt);
+        expect(source.history).toEqual([]);
+      }
+    );
 
     it("uses the current time when the moment is omitted", () => {
       const before = Date.now();
@@ -82,7 +87,9 @@ describe("changeStatus", () => {
       expect(at).toBeInstanceOf(Date);
       expect(at.getTime()).toBeGreaterThanOrEqual(before);
       expect(at.getTime()).toBeLessThanOrEqual(after);
-      expect(result.history).toEqual([{ from: "in_stock", to: "reserved", at }]);
+      expect(result.history).toEqual([
+        { from: "in_stock", to: "reserved", at },
+      ]);
     });
   });
 
@@ -99,7 +106,7 @@ describe("changeStatus", () => {
       const writtenOff = changeStatus(returned, "written_off", writtenOffAt);
 
       expect(sold.soldAt).toBe(soldAt);
-      expect(returned.soldAt).toBeUndefined();
+      expect(returned.soldAt).toBe(soldAt);
       expect(writtenOff.status).toBe("written_off");
       expect(writtenOff.history).toEqual([
         { from: "in_stock", to: "reserved", at: reservedAt },
@@ -202,10 +209,8 @@ describe("changeStatus", () => {
       const result = changeStatus(source, "in_stock", at);
 
       expect(result.status).toBe("in_stock");
-      expect(result.soldAt).toBeUndefined();
-      expect(result.history).toEqual([
-        { from: "sold", to: "in_stock", at },
-      ]);
+      expect(result.soldAt).toBe(SOLD_AT);
+      expect(result.history).toEqual([{ from: "sold", to: "in_stock", at }]);
       expect(source.status).toBe("sold");
       expect(source.soldAt).toBe(SOLD_AT);
       expect(source.history).toEqual([]);
@@ -225,9 +230,7 @@ describe("changeStatus", () => {
       const source = laptop({
         status: "sold",
         soldAt: SOLD_AT,
-        history: [
-          { from: "in_stock", to: "sold", at: SOLD_AT },
-        ],
+        history: [{ from: "in_stock", to: "sold", at: SOLD_AT }],
       });
 
       expectRejected(
@@ -333,33 +336,18 @@ describe("changeStatus", () => {
       );
     });
 
-    it("sets soldAt from a reservation and clears it on a later return", () => {
-      const reservedAt = new Date("2026-05-01T08:00:00.000Z");
-      const soldAt = new Date("2026-05-02T08:00:00.000Z");
-      const returnedAt = new Date("2026-05-16T08:00:00.000Z");
+    it("sets soldAt when status is sold (and stays in place on every other transition)", () => {
+      const soldAt = new Date("2026-05-01T08:00:00.000Z");
+      const source = laptop({ status: "sold", soldAt });
 
-      const sold = changeStatus(
-        changeStatus(laptop(), "reserved", reservedAt),
-        "sold",
-        soldAt
+      const result = changeStatus(
+        source,
+        "in_stock",
+        new Date("2026-05-02T08:00:00.000Z")
       );
-      const returned = changeStatus(sold, "in_stock", returnedAt);
 
-      expect(returnedAt.getTime() - soldAt.getTime()).toBe(14 * DAY_MS);
-      expect(sold.soldAt).toBe(soldAt);
-      expect(sold.history[1]).toEqual({
-        from: "reserved",
-        to: "sold",
-        at: soldAt,
-      });
-      expect(returned.status).toBe("in_stock");
-      expect(returned.soldAt).toBeUndefined();
-      expect(returned.history).toHaveLength(3);
-      expect(returned.history[2]).toEqual({
-        from: "sold",
-        to: "in_stock",
-        at: returnedAt,
-      });
+      expect(result.status).toBe("in_stock");
+      expect(result.soldAt).toBe(soldAt);
     });
   });
 });

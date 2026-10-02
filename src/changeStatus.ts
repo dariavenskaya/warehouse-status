@@ -55,7 +55,9 @@ function assertSoldReturn(soldAt: Date | undefined, at: Date): void {
 
   if (elapsedMs > RETURN_WINDOW_MS) {
     throw new Error(
-      `Возврат на склад возможен не позднее 14 дней после продажи (${formatUtc(soldAt)}).`
+      `Возврат на склад возможен не позднее 14 дней после продажи (${formatUtc(
+        soldAt
+      )}).`
     );
   }
 }
@@ -78,9 +80,7 @@ export function changeStatus(
   const { status: currentStatus } = laptop;
 
   if (!isStatus(currentStatus)) {
-    throw new Error(
-      `Неизвестный текущий статус «${String(currentStatus)}».`
-    );
+    throw new Error(`Неизвестный текущий статус «${String(currentStatus)}».`);
   }
 
   if (!isStatus(nextStatus)) {
@@ -128,8 +128,6 @@ export function changeStatus(
 
   if (nextStatus === "sold") {
     nextLaptop.soldAt = at;
-  } else if (currentStatus === "sold") {
-    delete nextLaptop.soldAt;
   }
 
   return nextLaptop;
