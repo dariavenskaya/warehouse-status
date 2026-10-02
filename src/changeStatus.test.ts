@@ -349,5 +349,25 @@ describe("changeStatus", () => {
       expect(result.status).toBe("in_stock");
       expect(result.soldAt).toBe(soldAt);
     });
+
+    it("replace soldAt after return and then sold again", () => {
+      const soldAt = new Date("2026-05-01T08:00:00.000Z");
+      const source = laptop({ status: "sold", soldAt });
+
+      const secondSaleAt = new Date("2026-05-02T08:00:00.000Z");
+
+      const result = changeStatus(
+        source,
+        "in_stock",
+        new Date("2026-05-02T08:00:00.000Z")
+      );
+
+      const result2 = changeStatus(result, "sold", secondSaleAt);
+
+      expect(result.status).toBe("in_stock");
+      expect(result.soldAt).toBe(soldAt);
+      expect(result2.status).toBe("sold");
+      expect(result2.soldAt).toBe(secondSaleAt);
+    });
   });
 });
