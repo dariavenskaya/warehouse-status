@@ -11,9 +11,12 @@
   "type": "module",
   "main": "index.ts",
   "scripts": {
-    "test": ""
+    "test": "jest"
   },
   "devDependencies": {
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "jest": "^30.5.2"
   }
 }
